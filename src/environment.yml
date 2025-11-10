@@ -1,0 +1,5 @@
+$schema: https://azuremlschemas.azureedge.net/latest/environment.schema.json
+name: mlflow-sklearn-env
+version: 1
+conda_file: conda.yml
+description: Environment with MLflow and scikit-learn for diabetes classification
