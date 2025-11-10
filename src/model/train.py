@@ -7,11 +7,15 @@ import os
 import pandas as pd
 
 from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+from sklearn.model_selection import train_test_split
+import mlflow
 
 
 # define functions
 def main(args):
-    # TO DO: enable autologging
+    # Enable autologging
+    mlflow.sklearn.autolog()
 
 
     # read data
@@ -34,7 +38,6 @@ def get_csvs_df(path):
 
 
 # TO DO: add function to split data
-from sklearn.model_selection import train_test_split
  
 def split_data(df, test_size=0.2): 
     X = df.drop("Diabetic", axis=1) 
@@ -45,7 +48,35 @@ def split_data(df, test_size=0.2):
 
 def train_model(reg_rate, X_train, X_test, y_train, y_test):
     # train model
-    LogisticRegression(C=1/reg_rate, solver="liblinear").fit(X_train, y_train)
+    model = LogisticRegression(C=1/reg_rate, solver="liblinear").fit(X_train, y_train)
+    
+    # make predictions
+    y_pred = model.predict(X_test)
+    
+    # calculate metrics
+    accuracy = accuracy_score(y_test, y_pred)
+    precision = precision_score(y_test, y_pred, average='weighted')
+    recall = recall_score(y_test, y_pred, average='weighted')
+    f1 = f1_score(y_test, y_pred, average='weighted')
+    
+    # log metrics
+    mlflow.log_metric("accuracy", accuracy)
+    mlflow.log_metric("precision", precision)
+    mlflow.log_metric("recall", recall)
+    mlflow.log_metric("f1_score", f1)
+    mlflow.log_param("reg_rate", reg_rate)
+    
+    # log model
+    mlflow.sklearn.log_model(model, "diabetics_model")
+    
+    # print metrics
+    print(f"Accuracy: {accuracy:.4f}")
+    print(f"Precision: {precision:.4f}")
+    print(f"Recall: {recall:.4f}")
+    print(f"F1 Score: {f1:.4f}")
+    print(f"Regularization rate: {reg_rate}")
+    
+    return model
 
 
 def parse_args():
